@@ -3,7 +3,7 @@ import socket
 import time
 
 #define address & buffer size
-HOST = "localhost"
+HOST = ""
 PORT = 8001
 BUFFER_SIZE = 1024
 
@@ -25,7 +25,7 @@ def main():
             
             #recieve data, wait a bit, then send it back
             full_data = conn.recv(BUFFER_SIZE)
-            time.sleep(0.2)
+            time.sleep(0.5)
             conn.sendall(full_data)
             conn.close()
 
