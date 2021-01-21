@@ -20,7 +20,6 @@ def communicate(addr, conn):
     print(f"connection from {addr}")
     host = 'www.google.com'
     port = 80
-    buffer_size = 4096
     #google
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as proxy_end:
         print("Connecting to Google")
@@ -38,7 +37,7 @@ def communicate(addr, conn):
         full_data = b""
         
         while True:
-            data = proxy_end.recv(buffer_size)
+            data = proxy_end.recv(BUFFER_SIZE)
             # print("recv: " + str(data))
             if not data:
                 break

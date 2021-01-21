@@ -23,7 +23,7 @@ def handle_echo(addr, conn):
     full_data = conn.recv(BUFFER_SIZE)
     print(full_data)
     conn.sendall(full_data)
-    #conn.shutdown(socket.SHUT_RDWR)
+    conn.shutdown(socket.SHUT_RDWR)
     conn.close()
 
 if __name__ == "__main__":
