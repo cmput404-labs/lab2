@@ -1,74 +1,45 @@
-import socket, time, sys
+import socket,time, sys
 from multiprocessing import Process
-
-HOST = "localhost"
+HOST = ""
 PORT = 8001
 BUFFER_SIZE = 1024
-
 def get_remote_ip(host):
-    print(f'Getting IP for {host}')
+    #print()
     try:
         remote_ip = socket.gethostbyname(host)
     except socket.gaierror:
-        print('Hostname could not be resolved. Exiting')
+        print("Hostname could not resolved. Exiting")
         sys.exit()
-
-    print(f'Ip address of {host} is {remote_ip}')
+    #print
     return remote_ip
 
-def communicate(addr, conn):
-    print(f"connection from {addr}")
-    host = 'www.google.com'
-    port = 80
-    #google
-    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as proxy_end:
-        print("Connecting to Google")
-        remote_ip = get_remote_ip(host)
-
-        proxy_end.connect((remote_ip, port))
-
-        send_full_data = conn.recv(BUFFER_SIZE)
-        print(f"Sending received data {send_full_data} to google")
-        proxy_end.sendall(send_full_data)
-
-        proxy_end.shutdown(socket.SHUT_WR)
-
-        #continue accepting data until no more left
-        full_data = b""
-        
-        while True:
-            data = proxy_end.recv(BUFFER_SIZE)
-            # print("recv: " + str(data))
-            if not data:
-                break
-            full_data += data
-        # print(full_data)
-        conn.sendall(full_data)
-
-        conn.close()
-        proxy_end.close()
+def handle_request(conn, addr, proxy_end):
+    send_full_data = conn.recv(BUFFER_SIZE)
+    proxy_end.sendall(send_full_data)
+    proxy_end.shutdown(socket.SHUT_WR)
+    data = proxy_end.recv(BUFFER_SIZE)
+    conn.send(data)
 
 def main():
-    
-
+    host = "www.google.com"
+    port = 80
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as proxy_start:
         print("Starting proxy server")
         proxy_start.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         proxy_start.bind((HOST, PORT))
-        proxy_start.listen(2)       
-
+        proxy_start.listen(1)
         while True:
-            # client
             conn, addr = proxy_start.accept()
             print("Connected by", addr)
-
-            p = Process(target=communicate, args=(addr, conn))
-            p.daemon = True
-            p.start()
-            print("started process ", p)
-
-            
-
+            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as proxy_end:
+                print("Connecting to Google")
+                remote_ip = get_remote_ip(host)
+                proxy_end.connect((remote_ip,port))
+                p = Process(target = handle_request, args = (conn, addr, proxy_end))
+                p.daemon = True
+                p.start()
+                print("Started process ", p)
+            conn.close()
 
 if __name__ == "__main__":
     main()
